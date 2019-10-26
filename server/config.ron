@@ -1,0 +1,7 @@
+(
+    db_host: "localhost",
+    db_port: 2424,
+    db_database: "demo",
+    db_user: "root",
+    db_password: "b",
+)
