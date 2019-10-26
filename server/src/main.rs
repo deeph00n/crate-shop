@@ -1,6 +1,6 @@
 use actix_files as fs;
 use actix_web::{web, App, HttpServer, middleware, HttpResponse};
-use orientdb_client::{OrientDB};
+use orientdb_client::{OrientDB, OSession};
 use ron::de::from_reader;
 use serde::{Deserialize,Serialize};
 use std::{fs::File};
@@ -23,16 +23,11 @@ struct Config {
 
 fn read_config() -> Config {
     let f = File::open("config.ron").expect("Failed opening config.ron");
-    let config: Config = from_reader(f).unwrap();
+    let config: Config = from_reader(f).expect("Could no parse config file");
     config
 }
 
-fn list_products() -> HttpResponse {
-    let config = read_config();
-    let client = OrientDB::connect((config.db_host,config.db_port)).unwrap();
-
-    let session = client.session(&config.db_database, &config.db_user,&config.db_password).unwrap();
-
+fn list_products(session: web::Data<OSession>) -> HttpResponse {
     let results = session
         .query("select from Product")
         .run()
@@ -48,17 +43,19 @@ fn list_products() -> HttpResponse {
 }
 
 fn main() -> std::io::Result<()> {
-
-
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-
-
     HttpServer::new(|| {
+        let config = read_config();
+        let client = OrientDB::connect((config.db_host,config.db_port)).unwrap();
+        let session = client.session(&config.db_database, &config.db_user,&config.db_password).unwrap();
+
         App::new()
+            .data(session)
             // enable logger
             .wrap(middleware::Logger::default())
+            .wrap(middleware::Compress::default())
             .service(web::resource("/product").route(web::get().to(list_products)))
             .service(
                 // static files
