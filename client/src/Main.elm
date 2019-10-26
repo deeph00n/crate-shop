@@ -2,9 +2,9 @@ module Main exposing (..)
 import Browser
 import Html exposing (..)
 import Http
-import Json.Decode exposing (Decoder, field, string)
-import Json.Decode as Decode exposing (Decoder, int, string, float)
-import Json.Decode.Pipeline exposing (required, optional, hardcoded)
+import Json.Decode exposing (Decoder, string)
+import Json.Decode as Decode exposing (Decoder, int, string)
+import Json.Decode.Pipeline exposing (required)
 
 
 -- MAIN
@@ -43,7 +43,7 @@ type Msg
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
+update msg _ =
   case msg of
     GotProducts result ->
       case result of
@@ -59,7 +59,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
   Sub.none
 
 
