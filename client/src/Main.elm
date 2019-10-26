@@ -6,10 +6,7 @@ import Json.Decode exposing (Decoder, string)
 import Json.Decode as Decode exposing (Decoder, int, string)
 import Json.Decode.Pipeline exposing (required)
 
-
 -- MAIN
-
-
 main =
   Browser.element
     { init = init
@@ -18,29 +15,19 @@ main =
     , view = view
     }
 
-
-
 -- MODEL
-
-
 type Model
   = Failure
   | Loading
   | Success (List Product)
 
-
 init : () -> (Model, Cmd Msg)
 init _ =
   (Loading, getProducts)
 
-
-
 -- UPDATE
-
-
 type Msg
   = GotProducts (Result Http.Error (List Product))
-
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg _ =
@@ -53,20 +40,12 @@ update msg _ =
         Err _ ->
           (Failure, Cmd.none)
 
-
-
 -- SUBSCRIPTIONS
-
-
 subscriptions : Model -> Sub Msg
 subscriptions _ =
   Sub.none
 
-
-
 -- VIEW
-
-
 view : Model -> Html Msg
 view model =
   div []
@@ -85,8 +64,8 @@ viewProducts model =
       text "Loading..."
 
     Success products ->
-      ul [] (List.map viewProduct (List.sortBy (\p -> p.name) products))
--- HTTP
+      ul [] (List.map viewProduct (List.sortBy (\p -> p.price) products))
+
 
 viewProduct : Product -> Html msg
 viewProduct product =
