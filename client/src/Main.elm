@@ -28,16 +28,18 @@ main =
 
 
 emptyProduct =
-    { price = 0
+    { id = ""
     , name = ""
     , image = ""
+    , price = 0
     }
 
 
 type alias Product =
-    { price : Int
+    { id : String
     , name : String
     , image : String
+    , price : Int
     }
 
 
@@ -80,7 +82,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CreateProduct product ->
-            ( model, postNewProduct <| product )
+            ( { model | currentProduct = emptyProduct }, postNewProduct <| product )
 
         GotProducts result ->
             case result of
@@ -182,25 +184,24 @@ createProductView currentProduct images =
             ]
         , div []
             [ text "Image"
-            , input [ type_ "text", value currentProduct.image, onInput (Change ProductImage) ] []
+            , select [ onInput (Change ProductImage) ] (List.append [ option [] [ text "None" ] ] (List.map (viewImage currentProduct.image) images))
             ]
         , div []
-            [ text "Price"
+            [ text "Price (in Cent)"
             , input [ type_ "number", value (String.fromInt currentProduct.price), onInput (Change ProductPrice) ] []
             ]
         , div [] [ button [ onClick (CreateProduct currentProduct) ] [ text "Create" ] ]
-        , ul [] (List.map viewImage images)
         ]
 
 
-viewImage : String -> Html Msg
-viewImage image =
-    li [] [ text image ]
+viewImage : String -> String -> Html Msg
+viewImage currentImage image =
+    option [ value image, selected (currentImage == image) ] [ text image ]
 
 
 viewProduct : Product -> Html msg
 viewProduct product =
-    li [] [ text (product.name ++ " costs " ++ String.fromInt product.price) ]
+    li [] [ text (product.name ++ " costs " ++ String.fromInt product.price ++ " image: " ++ product.image) ]
 
 
 getProducts : Cmd Msg
@@ -241,15 +242,17 @@ productsDecoder =
 productDecoder : JD.Decoder Product
 productDecoder =
     JD.succeed Product
-        |> Json.Decode.Pipeline.required "price" JD.int
+        |> Json.Decode.Pipeline.required "id" JD.string
         |> Json.Decode.Pipeline.required "name" JD.string
         |> Json.Decode.Pipeline.required "image" JD.string
+        |> Json.Decode.Pipeline.required "price" JD.int
 
 
 productEncoder : Product -> JE.Value
 productEncoder product =
     JE.object
-        [ ( "name", JE.string product.name )
+        [ ( "id", JE.string product.id )
+        , ( "name", JE.string product.name )
         , ( "price", JE.int product.price )
         , ( "image", JE.string product.image )
         ]
